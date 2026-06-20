@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bold-yellow-bottom",
+    "name": "Bold Yellow (Bottom)",
+    "style": {
+      "presetId": "bold-yellow-bottom",
+      "fontFamily": "Poppins-Bold",
+      "fontSize": 48,
+      "color": "#FFD700",
+      "backgroundColor": { "r": 0, "g": 0, "b": 0, "a": 0.6 },
+      "borderRadius": 8,
+      "position": { "x": "center", "y": 82 },
+      "animation": "pop",
+      "highlightColor": "#FF3B30"
+    }
+  },
+  {
+    "id": "clean-white-center",
+    "name": "Clean White (Center)",
+    "style": {
+      "presetId": "clean-white-center",
+      "fontFamily": "Inter-Bold",
+      "fontSize": 56,
+      "color": "#FFFFFF",
+      "backgroundColor": { "r": 0, "g": 0, "b": 0, "a": 0 },
+      "borderRadius": 0,
+      "position": { "x": "center", "y": 50 },
+      "animation": "fade",
+      "highlightColor": "#00C2FF"
+    }
+  },
+  {
+    "id": "karaoke-classic",
+    "name": "Karaoke (Word Highlight)",
+    "style": {
+      "presetId": "karaoke-classic",
+      "fontFamily": "Montserrat-Bold",
+      "fontSize": 50,
+      "color": "#FFFFFF",
+      "backgroundColor": { "r": 0, "g": 0, "b": 0, "a": 0.45 },
+      "borderRadius": 12,
+      "position": { "x": "center", "y": 78 },
+      "animation": "karaoke",
+      "highlightColor": "#39FF14"
+    }
+  },
+  {
+    "id": "minimal-top",
+    "name": "Minimal (Top Banner)",
+    "style": {
+      "presetId": "minimal-top",
+      "fontFamily": "Inter-Regular",
+      "fontSize": 40,
+      "color": "#111111",
+      "backgroundColor": { "r": 255, "g": 255, "b": 255, "a": 0.85 },
+      "borderRadius": 6,
+      "position": { "x": "center", "y": 12 },
+      "animation": "slide-up",
+      "highlightColor": "#FF3B30"
+    }
+  }
+]

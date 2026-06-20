@@ -1,0 +1,14 @@
+{
+  "name": "video-caption-editor-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+"scripts": {
+    "install:all": "npm install",
+    "dev:server": "npm run dev --workspace=text-motion-server",
+    "dev:frontend": "npm run dev --workspace=text-motion-frontend" 
+  }
+}

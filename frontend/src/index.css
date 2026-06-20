@@ -1,0 +1,94 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0f0f11;
+  color: #f0f0f0;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root { height: 100vh; display: flex; flex-direction: column; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #18181b; }
+::-webkit-scrollbar-thumb { background: #3a3a42; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a2a2e;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+input[type=range]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+input[type=color] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #3a3a42;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  overflow: hidden;
+}
+input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type=color]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+button { font-family: inherit; }
+
+/* Add this to your global index.css or App.css file */
+
+@font-face {
+  font-family: 'DejaVu Sans Bold';
+  src: url('/fonts/dejavu-sans-bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Blackburn Free';
+  src: url('/fonts/Blackburn Free.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Worldstar Regular';
+  src: url('/fonts/WorldstarRegular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Sugiono';
+  src: url('/fonts/Sugiono-3zqyy.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Cintaly';
+  src: url('/fonts/Cintaly-Eazdl.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Blankit';
+  src: url('/fonts/Blankit-8MW2B.ttf') format('truetype');
+}
