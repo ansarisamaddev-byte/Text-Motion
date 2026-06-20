@@ -32,9 +32,10 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      # FIXED: Swapped 'npm exec' for direct binary path execution to fix executable errors
       - name: Install Chrome for Remotion
         working-directory: ./server
-        run: npm exec remotion browser ensure
+        run: ./node_modules/.bin/remotion browser ensure
 
       - name: Render and upload
         env:
