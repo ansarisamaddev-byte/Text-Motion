@@ -12,16 +12,10 @@ router.get('/:jobId', async (req, res) => {
       .select('*')
       .eq('id', jobId)
       .single();
-
     if (error || !job) {
       return res.status(404).json({ error: 'Target pipeline state element not located.' });
     }
 
-    // result_url means different things depending on job type:
-    //  - transcribe jobs: a JSON-stringified array of timestamped caption chunks
-    //  - export jobs: a plain Cloudinary video URL string
-    // Only attempt JSON.parse when it actually looks like JSON, so a plain
-    // URL doesn't get logged as a parse failure.
     let parsedResult: any = null;
     if (job.result_url) {
       if (typeof job.result_url === 'string') {
