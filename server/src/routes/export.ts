@@ -16,11 +16,10 @@ const GITHUB_REF = process.env.RENDER_REF || 'main';
 
 router.post('/', async (req, res) => {
   const { project, projectId } = req.body;
-
+  console.log(projectId, project);
   if (!project) {
     return res.status(400).json({ error: 'Project configuration is required.' });
   }
-  console.log(project)  
   try {
     // 1. Create the job in Supabase
     // Update this line in your export.ts
@@ -37,15 +36,8 @@ router.post('/', async (req, res) => {
 
     // Replace your existing catch/dbError block with this
     if (dbError) {
-      console.error("--- DATABASE INSERT FAILED ---");
-      console.error("Error Message:", dbError.message);
-      console.error("Error Details:", dbError.details);
-      console.error("Error Hint:", dbError.hint);
       return res.status(500).json({ error: 'Database insert failed', details: dbError });
     }
-    
-    console.log(`[Export Route] Created job ${job.id} for project ${projectId || 'N/A'}`);
-    console.log(PROFILE === 'production' ? '[Export Route] Running in production mode.' : '[Export Route] Running in development mode.');
     // 2. Trigger the Worker
     if (PROFILE === 'production') {
       await triggerGithubActionRender(job.id);

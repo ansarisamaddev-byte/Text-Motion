@@ -40,7 +40,6 @@ export interface TranscribeResponse {
 }
 
 export async function startTranscription(videoUrl: string, projectId: string): Promise<TranscribeResponse> {
-  console.log('Starting transcription for video URL:', videoUrl, projectId);
   const res = await fetch(`${API_BASE_URL}/api/transcribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
