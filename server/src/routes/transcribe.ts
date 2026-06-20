@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
       if (process.env.NODE_ENV === 'production') {
         // Call the GitHub repository_dispatch API
         const GITHUB_OWNER = process.env.GITHUB_REPO_OWNER || 'your-github-username';
-        const GITHUB_REPO = process.env.GITHUB_REPO || 'your-repo-name';
+        const GITHUB_REPO = process.env.GITHUB_REPO_TRANSCRIPT || 'your-repo-name';
 
         await axios.post(
           `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
