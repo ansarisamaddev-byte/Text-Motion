@@ -19,18 +19,25 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: server/package-lock.json
 
+      # Fixed: Added working-directory so it finds package.json
       - name: Install dependencies
+        working-directory: ./server
         run: npm ci
 
+      # Fixed: Added working-directory so it can locate remotion binaries
       - name: Install Chrome for Remotion
+        working-directory: ./server
         run: npx remotion browser ensure
 
       - name: Render and upload
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+          # If you don't use a preset, you can pass your API Secret key here instead:
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
         working-directory: ./server
         run: npx ts-node src/scripts/renderJob.ts "${{ inputs.job_id }}"

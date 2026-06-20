@@ -8,11 +8,11 @@ const router = Router();
 
 const PROFILE = process.env.NODE_ENV || 'development';
 
-const GITHUB_OWNER = process.env.GITHUB_REPO_OWNER!;
-const GITHUB_REPO = process.env.GITHUB_REPO_APP!;
-const GITHUB_WORKFLOW_FILE = process.env.GITHUB_RENDER_WORKFLOW || 'render.yml';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
-const GITHUB_REF = process.env.GITHUB_RENDER_REF || 'main';
+const GITHUB_OWNER = process.env.REPO_OWNER!;
+const GITHUB_REPO = process.env.REPO_APP!;
+const GITHUB_WORKFLOW_FILE = process.env.RENDER_WORKFLOW || 'render.yml';
+const GITHUB_TOKEN = process.env.TOKEN!;
+const GITHUB_REF = process.env.RENDER_REF || 'main';
 
 router.post('/', async (req, res) => {
   const { project, projectId } = req.body;
@@ -76,7 +76,7 @@ function runLocalRender(jobId: string) {
 async function triggerGithubActionRender(jobId: string) {
   if (!GITHUB_OWNER || !GITHUB_REPO || !GITHUB_TOKEN) {
     throw new Error(
-      'GitHub dispatch is not configured (missing GITHUB_REPO_OWNER / GITHUB_REPO_NAME / GITHUB_DISPATCH_TOKEN).'
+      'GitHub dispatch is not configured (missing REPO_OWNER / GITHUB_REPO_NAME / GITHUB_DISPATCH_TOKEN).'
     );
   }
 

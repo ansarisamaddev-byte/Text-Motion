@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
     try {
       if (process.env.NODE_ENV === 'production') {
         // Call the GitHub repository_dispatch API
-        const GITHUB_OWNER = process.env.GITHUB_REPO_OWNER || 'your-github-username';
-        const GITHUB_REPO = process.env.GITHUB_REPO_TRANSCRIPT || 'your-repo-name';
+        const GITHUB_OWNER = process.env.REPO_OWNER || 'your-github-username';
+        const GITHUB_REPO = process.env.REPO_TRANSCRIPT || 'your-repo-name';
 
         await axios.post(
           `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
           },
           {
             headers: {
-              'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+              'Authorization': `Bearer ${process.env.TOKEN}`,
               'Accept': 'application/vnd.github+json',
               'X-GitHub-Api-Version': '2022-11-28'
             }
