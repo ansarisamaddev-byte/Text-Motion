@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Chrome for Remotion
         working-directory: ./server
-        run: npx remotion browser ensure
+        run: npm exec remotion browser ensure
 
       - name: Render and upload
         env:
