@@ -18,7 +18,7 @@
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "remotion": "^4.0.222",
+    "remotion": "^4.0.481",
     "supabase": "^2.107.0",
     "zustand": "^5.0.3"
   },
