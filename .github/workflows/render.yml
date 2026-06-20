@@ -32,10 +32,9 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      # FIXED: Changed working-directory to ./frontend where remotion is actually installed
       - name: Install Chrome for Remotion
         working-directory: ./frontend
-        run: npx remotion browser ensure
+        run: ./node_modules/.bin/remotion browser ensure
 
       - name: Render and upload
         env:
