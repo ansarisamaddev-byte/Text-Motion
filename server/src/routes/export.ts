@@ -9,9 +9,9 @@ const router = Router();
 const PROFILE = process.env.NODE_ENV || 'development';
 
 const GITHUB_OWNER = process.env.GITHUB_REPO_OWNER!;
-const GITHUB_REPO = process.env.GITHUB_REPO_NAME!;
+const GITHUB_REPO = process.env.GITHUB_REPO_APP!;
 const GITHUB_WORKFLOW_FILE = process.env.GITHUB_RENDER_WORKFLOW || 'render.yml';
-const GITHUB_TOKEN = process.env.GITHUB_DISPATCH_TOKEN!;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
 const GITHUB_REF = process.env.GITHUB_RENDER_REF || 'main';
 
 router.post('/', async (req, res) => {
