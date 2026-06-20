@@ -6,8 +6,7 @@ const router = Router();
 
 router.post('/', async (req, res) => {
   const { videoUrl, projectId } = req.body;
-  console.log('[Transcription Request Received]:', { videoUrl, projectId });
-  
+
   if (!videoUrl) {
     return res.status(400).json({ error: 'videoUrl parameter is required.' });
   }
@@ -56,7 +55,6 @@ router.post('/', async (req, res) => {
             }
           }
         );
-        console.log(`[GitHub Integration] Dispatched job ${job.id} to GitHub Actions.`);
       } else {
         // Local Dev Route: Call local FastAPI instance
         axios.post('http://localhost:8001/transcribe', {

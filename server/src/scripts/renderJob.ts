@@ -47,16 +47,11 @@ async function main() {
   }
 
   const project = job.payload?.project;
-  console.log("SUPABASE PROJECT");
-  console.log(JSON.stringify(project, null, 2));
 
-  // ── DEFENSIIVE PAYLOAD CHECK ──
   if (!project || !project.videoSrc) {
     console.error(`[renderJob] CRITICAL ERROR: payload.project or videoSrc is completely empty inside the database log row.`);
     process.exit(1);
   }
-
-  console.log(`[renderJob] Found valid payload video resource target: ${project.videoSrc}`);
 
   const buildFolder = path.resolve(__dirname, '../../builds');
   if (!fs.existsSync(buildFolder)) fs.mkdirSync(buildFolder, { recursive: true });
@@ -64,28 +59,21 @@ async function main() {
   const configPath = path.join(buildFolder, `project-${job.id}.json`);
   const outputPath = path.join(buildFolder, `output-${job.id}.mp4`);
 
-  // Fix Culprit #1: Nest the project object so both calculateMetadata and MainComposition read the identical tree structure
   const unifiedRemotionProps = {
     project: project
   };
 
   fs.writeFileSync(configPath, JSON.stringify(unifiedRemotionProps, null, 2));
-    console.log("CONFIG PATH:", configPath);
-  console.log("CONFIG CONTENT:");
-  console.log(fs.readFileSync(configPath, "utf8"));
   try {
     const entryPoint = resolveEntryPoint();
-    console.log(`[renderJob] Using entry point: ${entryPoint}`);
     
-    // Fix Culprit #2: Change from --props to --props-src so Remotion treats the string argument as a file path location
-    const renderCommand =
-  `npx remotion render "${entryPoint}" MainComposition "${outputPath}" --props="${configPath}"`;
+    // FIX: Changed --props to --props-src so Remotion processes it as a configuration file path
+    const renderCommand = `npx remotion render "${entryPoint}" MainComposition "${outputPath}" --props-src="${configPath}"`;
     
     console.log(`[renderJob] Executing: ${renderCommand}`);
     const { stdout, stderr } = await execAsync(renderCommand);
-
-    console.log(stdout);
-    console.error(stderr);
+    if (stdout) console.log(stdout);
+    if (stderr) console.error(stderr);
 
     console.log(`[renderJob] Uploading rendered video to Cloudinary...`);
     

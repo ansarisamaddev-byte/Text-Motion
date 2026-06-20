@@ -17,16 +17,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22   # Updated to 22 for native WebSocket support
+          node-version: 22   
           cache: npm
-          cache-dependency-path: server/package-lock.json
+          # Enhanced cache tracking to follow both project directories
+          cache-dependency-path: |
+            server/package-lock.json
+            frontend/package-lock.json
 
-      # Fixed: Added working-directory so it finds package.json
-      - name: Install dependencies
+      - name: Install Server dependencies
         working-directory: ./server
         run: npm ci
 
-      # Fixed: Added working-directory so it can locate remotion binaries
+      - name: Install Frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
       - name: Install Chrome for Remotion
         working-directory: ./server
         run: npx remotion browser ensure
