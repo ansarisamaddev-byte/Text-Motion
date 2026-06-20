@@ -19,22 +19,16 @@ jobs:
         with:
           node-version: 22   
           cache: npm
-          # Enhanced cache tracking to follow both project directories
-          cache-dependency-path: |
-            server/package-lock.json
-            frontend/package-lock.json
+          # Pointing to the root lockfile now
+          cache-dependency-path: package-lock.json
 
-      - name: Install Server dependencies
-        working-directory: ./server
+      # CLEANEST: Install everything at the root once
+      - name: Install All Monorepo Dependencies
         run: npm ci
 
-      - name: Install Frontend dependencies
-        working-directory: ./frontend
-        run: npm ci
-
+      # Executed from root because that's where node_modules/.bin lives
       - name: Install Chrome for Remotion
-        working-directory: ./frontend
-        run: ./node_modules/.bin/remotion browser ensure
+        run: npx remotion browser ensure
 
       - name: Render and upload
         env:
