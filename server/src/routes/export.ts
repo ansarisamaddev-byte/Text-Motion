@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
       return res.status(500).json({ error: 'Database insert failed', details: dbError });
     }
     // 2. Trigger the Worker
-    if (PROFILE === 'production') {
+    if (process.env.NODE_ENV === 'production') {
       await triggerGithubActionRender(job.id);
     } else {
       // In dev, we still trigger the local worker
