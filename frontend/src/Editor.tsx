@@ -92,7 +92,6 @@ export const Editor: React.FC = () => {
       const videoUrl = await uploadToCloudinary(file, sig, 'video');
       const projectId = useProjectStore.getState().project.id;
     
-      console.log('[DEBUG] Retrieved Project ID from store:', projectId);
       setVideoSrc(videoUrl, Math.round(meta.duration * meta.fps), meta.fps, meta.width, meta.height);
       setUploadStatus('Transcribing audio...');
       const { task_id } = await startTranscription(videoUrl, projectId);

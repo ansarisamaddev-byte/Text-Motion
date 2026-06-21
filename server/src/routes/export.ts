@@ -16,13 +16,15 @@ const GITHUB_REF = process.env.RENDER_REF || 'main';
 
 router.post('/', async (req, res) => {
   const { project, projectId } = req.body;
-  console.log(projectId, project);
   if (!project) {
     return res.status(400).json({ error: 'Project configuration is required.' });
   }
   try {
-    // 1. Create the job in Supabase
-    // Update this line in your export.ts
+    console.log('[Export Route] Creating export job');
+    console.log('[Export Route] videoSrc:', project?.videoSrc);
+    console.log('[Export Route] captions:', project?.captions?.length || 0);
+    console.log('[Export Route] overlays:', project?.overlays?.length || 0);
+
     const { data: job, error: dbError } = await supabase
       .from('jobs')
       .insert([{
@@ -39,14 +41,14 @@ router.post('/', async (req, res) => {
       return res.status(500).json({ error: 'Database insert failed', details: dbError });
     }
     // 2. Trigger the Worker
-    if (process.env.NODE_ENV === 'production') {
+    if (PROFILE === 'production') {
       await triggerGithubActionRender(job.id);
     } else {
       // In dev, we still trigger the local worker
       runLocalRender(job.id);
     }
 
-    return res.json({ jobId: job.id, status: 'pending' });
+    return res.json({ jobId: job.id, status: 'queued' });
   } catch (error: any) {
     console.error(`[Export Route] Error creating job:`, error);
     return res.status(500).json({ error: error.message });
@@ -56,7 +58,6 @@ router.post('/', async (req, res) => {
 function runLocalRender(jobId: string) {
   const scriptPath = path.join(__dirname, '../scripts/renderJob.ts');
   const cmd = `npx ts-node "${scriptPath}" ${jobId}`;
-  console.log(`[Export Route] (dev) Spawning local render: ${cmd}`);
 
   exec(cmd, (error, stdout, stderr) => {
     if (stdout) console.log(`[Local Render stdout]: ${stdout}`);

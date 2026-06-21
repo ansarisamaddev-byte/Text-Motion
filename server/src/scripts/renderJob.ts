@@ -20,7 +20,6 @@ cloudinary.config({
 function resolveEntryPoint(): string {
   const rootPath = path.resolve(__dirname, '../../../frontend/src/remotion/index.ts');
   if (fs.existsSync(rootPath)) {
-    console.log(`[renderJob] Entrypoint verified at: ${rootPath}`);
     return rootPath;
   }
   throw new Error(`CRITICAL: Cannot find entrypoint index layout at ${rootPath}`);
@@ -58,8 +57,6 @@ async function main() {
 
   try {
     const entryPoint = resolveEntryPoint();
-
-    console.log(`[renderJob] Bundling video composition layers via @remotion/bundler...`);
     
     // PERMANENT FIX: Pass ONLY the entryPoint. 
     // This entirely avoids TypeScript complaining about mismatching legacy bundle options.
@@ -67,7 +64,6 @@ async function main() {
     const serveUrl = await bundle({
       entryPoint
     });
-    console.log(`[renderJob] Extracting and verifying target composition configuration trees...`);
     const comps = await getCompositions(serveUrl, {
       inputProps: unifiedRemotionProps,
     });
@@ -76,8 +72,6 @@ async function main() {
     if (!composition) {
       throw new Error(`CRITICAL: Composition ID 'MainComposition' was not found inside Remotion entry definitions.`);
     }
-
-    console.log(`[renderJob] Initializing programmatic headless frame generation loops...`);
     await renderMedia({
       composition,
       serveUrl,
@@ -101,8 +95,6 @@ async function main() {
       console.error(`[renderJob] RAW CLOUDINARY RESPONSE:`, uploadRes);
       throw new Error("Cloudinary finished the upload but failed to return a secure_url.");
     }
-
-    console.log(`[renderJob] Upload successful. Target location: ${uploadRes.secure_url}`);
 
     await supabase
       .from('jobs')

@@ -17,15 +17,11 @@ export const RemotionRoot: React.FC = () => {
       defaultProps={{ project: defaultProject }}
       calculateMetadata={({ props }) => {
         const project = props?.project || props || {};
-        console.log("ROOT PROPS");
-        console.log(JSON.stringify(props, null, 2));
         // Map perfectly to the corrected store configuration structure
         const duration = project.durationFrames || props.durationFrames || 252;
         const fps = project.fps || props.fps || 30;
         const width = project.resolution?.width || project.width || 720;
         const height = project.resolution?.height || project.height || 1280;
-
-        console.log(`[Remotion Root Engine] Resolved Metadata -> Frames: ${duration}, ${width}x${height}`);
 
         return {
           durationInFrames: duration,
