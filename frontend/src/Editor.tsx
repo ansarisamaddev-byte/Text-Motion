@@ -159,7 +159,7 @@ export const Editor: React.FC = () => {
       const poll = async () => {
         const job = await getJobStatus(jobId);
         if (job.status === 'queued' || job.status === 'processing') { 
-          setUploadStatus('Rendering video via GitHub Actions...');
+          setUploadStatus('Rendering video...');
           setTimeout(poll, 3000); 
           return; 
         }
