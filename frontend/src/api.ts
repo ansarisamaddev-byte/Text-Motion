@@ -12,6 +12,7 @@ export interface CloudinarySignature {
 
 /** Get a signed Cloudinary upload params from our backend (keeps API secret server-side). */
 export async function getUploadSignature(): Promise<CloudinarySignature> {
+  console.log(`Backend`, API_BASE_URL)
   const res = await fetch(`${API_BASE_URL}/api/upload/signature`);
   if (!res.ok) throw new Error('Failed to get upload signature');
   return res.json();
