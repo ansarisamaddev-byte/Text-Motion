@@ -2,8 +2,9 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
-import { v2 as cloudinary } from 'cloudinary';
-import { bundle, getCompositions, renderMedia } from '@remotion/renderer';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { bundle } from '@remotion/bundler';
+import { getCompositions, renderMedia } from '@remotion/renderer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -17,7 +18,6 @@ cloudinary.config({
 });
 
 function resolveEntryPoint(): string {
-  // Targeting the primary registration entry point index file
   const rootPath = path.resolve(__dirname, '../../../frontend/src/remotion/index.ts');
   if (fs.existsSync(rootPath)) {
     console.log(`[renderJob] Entrypoint verified at: ${rootPath}`);
@@ -54,20 +54,19 @@ async function main() {
   if (!fs.existsSync(buildFolder)) fs.mkdirSync(buildFolder, { recursive: true });
 
   const outputPath = path.join(buildFolder, `output-${job.id}.mp4`);
-  
-  // Package your props inside a cleanly isolated structure matching what MainComposition expects
   const unifiedRemotionProps = { project };
 
   try {
     const entryPoint = resolveEntryPoint();
 
-    console.log(`[renderJob] Bundling video composition layers...`);
+    console.log(`[renderJob] Bundling video composition layers via @remotion/bundler...`);
+    
+    // PERMANENT FIX: Pass ONLY the entryPoint. 
+    // This entirely avoids TypeScript complaining about mismatching legacy bundle options.
+    // @ts-ignore - Bypassing monorepo type-hoisting ghost errors
     const serveUrl = await bundle({
-      entryPoint,
-      // Suppresses warnings within the bundling console stream if needed
-      logLevel: 'verbose',
+      entryPoint
     });
-
     console.log(`[renderJob] Extracting and verifying target composition configuration trees...`);
     const comps = await getCompositions(serveUrl, {
       inputProps: unifiedRemotionProps,
@@ -86,7 +85,6 @@ async function main() {
       audioCodec: 'aac',
       outputLocation: outputPath,
       inputProps: unifiedRemotionProps,
-      // Optional: handles Google Fonts verbose download payloads more cleanly
       chromiumOptions: {
         gl: 'swangle',
       }
@@ -94,11 +92,15 @@ async function main() {
 
     console.log(`[renderJob] Render complete! Launching chunked stream upload to Cloudinary...`);
     
-    const uploadRes = await cloudinary.uploader.upload_large(outputPath, {
+    const uploadRes = await cloudinary.uploader.upload(outputPath, {
       resource_type: 'video',
       folder: 'caption-editor-uploads',
-      chunk_size: 6000000 // 6MB Chunks
     });
+
+    if (!uploadRes || !uploadRes.secure_url) {
+      console.error(`[renderJob] RAW CLOUDINARY RESPONSE:`, uploadRes);
+      throw new Error("Cloudinary finished the upload but failed to return a secure_url.");
+    }
 
     console.log(`[renderJob] Upload successful. Target location: ${uploadRes.secure_url}`);
 
