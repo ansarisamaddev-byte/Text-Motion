@@ -1,12 +1,9 @@
 import 'dotenv/config'; 
 import { createClient } from '@supabase/supabase-js';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { v2 as cloudinary } from 'cloudinary';
-
-const execAsync = promisify(exec);
+import { bundle, getCompositions, renderMedia } from '@remotion/renderer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -20,15 +17,13 @@ cloudinary.config({
 });
 
 function resolveEntryPoint(): string {
-  const rootPath = path.resolve(
-                        __dirname,
-                        '../../../frontend/src/remotion/index.ts'
-                    );
+  // Targeting the primary registration entry point index file
+  const rootPath = path.resolve(__dirname, '../../../frontend/src/remotion/index.ts');
   if (fs.existsSync(rootPath)) {
-    console.log(`[renderJob] Found Root file at: ${rootPath}`);
+    console.log(`[renderJob] Entrypoint verified at: ${rootPath}`);
     return rootPath;
   }
-  throw new Error(`CRITICAL: Cannot find Root.tsx at ${rootPath}`);
+  throw new Error(`CRITICAL: Cannot find entrypoint index layout at ${rootPath}`);
 }
 
 async function main() {
@@ -58,40 +53,54 @@ async function main() {
   const buildFolder = path.resolve(__dirname, '../../builds');
   if (!fs.existsSync(buildFolder)) fs.mkdirSync(buildFolder, { recursive: true });
 
-  const configPath = path.join(buildFolder, `project-${job.id}.json`);
   const outputPath = path.join(buildFolder, `output-${job.id}.mp4`);
+  
+  // Package your props inside a cleanly isolated structure matching what MainComposition expects
+  const unifiedRemotionProps = { project };
 
-  const unifiedRemotionProps = {
-    project: project
-  };
-
-  fs.writeFileSync(configPath, JSON.stringify(unifiedRemotionProps, null, 2));
   try {
-    const entryPoint = path.resolve(
-                            __dirname,
-                            '../../../frontend/src/remotion/index.ts'
-                        );
+    const entryPoint = resolveEntryPoint();
 
-    const props = JSON.stringify({
-        project,
-    }).replace(/"/g, '\\"');
-    
-    // FIX: Changed --props to --props-src so Remotion processes it as a configuration file path
-    const renderCommand = `npx remotion render "${entryPoint}" MainComposition "${outputPath}" --props="${props}"`;
-    
-    console.log(`[renderJob] Executing: ${renderCommand}`);
-    const { stdout, stderr } = await execAsync(renderCommand);
-    if (stdout) console.log(stdout);
-    if (stderr) console.error(stderr);
-
-    console.log(`[renderJob] Uploading rendered video to Cloudinary...`);
-    
-    const uploadRes = await cloudinary.uploader.upload(outputPath, {
-      resource_type: 'video',
-      folder: 'caption-editor-uploads',
+    console.log(`[renderJob] Bundling video composition layers...`);
+    const serveUrl = await bundle({
+      entryPoint,
+      // Suppresses warnings within the bundling console stream if needed
+      logLevel: 'verbose',
     });
 
-    console.log(`[renderJob] Upload successful. URL: ${uploadRes.secure_url}`);
+    console.log(`[renderJob] Extracting and verifying target composition configuration trees...`);
+    const comps = await getCompositions(serveUrl, {
+      inputProps: unifiedRemotionProps,
+    });
+
+    const composition = comps.find(c => c.id === 'MainComposition');
+    if (!composition) {
+      throw new Error(`CRITICAL: Composition ID 'MainComposition' was not found inside Remotion entry definitions.`);
+    }
+
+    console.log(`[renderJob] Initializing programmatic headless frame generation loops...`);
+    await renderMedia({
+      composition,
+      serveUrl,
+      codec: 'h264',
+      audioCodec: 'aac',
+      outputLocation: outputPath,
+      inputProps: unifiedRemotionProps,
+      // Optional: handles Google Fonts verbose download payloads more cleanly
+      chromiumOptions: {
+        gl: 'swangle',
+      }
+    });
+
+    console.log(`[renderJob] Render complete! Launching chunked stream upload to Cloudinary...`);
+    
+    const uploadRes = await cloudinary.uploader.upload_large(outputPath, {
+      resource_type: 'video',
+      folder: 'caption-editor-uploads',
+      chunk_size: 6000000 // 6MB Chunks
+    });
+
+    console.log(`[renderJob] Upload successful. Target location: ${uploadRes.secure_url}`);
 
     await supabase
       .from('jobs')
@@ -102,20 +111,21 @@ async function main() {
       })
       .eq('id', job.id);
 
-    console.log(`[renderJob] Successfully completed job ${job.id}`);
+    console.log(`[renderJob] Successfully finalized processing pipeline for job ${job.id}`);
   } catch (err: any) {
-    console.error(`[renderJob] Failed:`, err.message);
+    const detailedError = err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+    console.error(`[renderJob] Execution Engine Failure:`, detailedError);
+    
     await supabase
       .from('jobs')
       .update({
         status: 'failed',
-        error_message: err.message,
+        error_message: detailedError,
         updated_at: new Date().toISOString(),
       })
       .eq('id', job.id);
     process.exit(1);
   } finally {
-    if (fs.existsSync(configPath)) fs.unlinkSync(configPath);
     if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
   }
 }
