@@ -20,7 +20,10 @@ cloudinary.config({
 });
 
 function resolveEntryPoint(): string {
-  const rootPath = path.resolve(__dirname, '../../../frontend/src/remotion/Root.tsx');
+  const rootPath = path.resolve(
+                        __dirname,
+                        '../../../frontend/src/remotion/index.ts'
+                    );
   if (fs.existsSync(rootPath)) {
     console.log(`[renderJob] Found Root file at: ${rootPath}`);
     return rootPath;
@@ -47,7 +50,6 @@ async function main() {
   }
 
   const project = job.payload?.project;
-
   if (!project || !project.videoSrc) {
     console.error(`[renderJob] CRITICAL ERROR: payload.project or videoSrc is completely empty inside the database log row.`);
     process.exit(1);
@@ -65,10 +67,17 @@ async function main() {
 
   fs.writeFileSync(configPath, JSON.stringify(unifiedRemotionProps, null, 2));
   try {
-    const entryPoint = resolveEntryPoint();
+    const entryPoint = path.resolve(
+                            __dirname,
+                            '../../../frontend/src/remotion/index.ts'
+                        );
+
+    const props = JSON.stringify({
+        project,
+    }).replace(/"/g, '\\"');
     
     // FIX: Changed --props to --props-src so Remotion processes it as a configuration file path
-    const renderCommand = `npx remotion render "${entryPoint}" MainComposition "${outputPath}" --props-src="${configPath}"`;
+    const renderCommand = `npx remotion render "${entryPoint}" MainComposition "${outputPath}" --props="${props}"`;
     
     console.log(`[renderJob] Executing: ${renderCommand}`);
     const { stdout, stderr } = await execAsync(renderCommand);

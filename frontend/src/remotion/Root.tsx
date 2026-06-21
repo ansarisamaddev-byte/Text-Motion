@@ -2,7 +2,6 @@ import React from 'react';
 import { Composition } from 'remotion';
 import { MainComposition } from './MainComposition';
 import { createEmptyProject, type Project } from '../types';
-import { registerRoot } from 'remotion';
 import { loadFont } from "@remotion/google-fonts/Poppins";
 export const RemotionRoot: React.FC = () => {
   const defaultProject: Project = createEmptyProject();
@@ -38,5 +37,3 @@ export const RemotionRoot: React.FC = () => {
     />
   );
 };
-
-registerRoot(RemotionRoot);
