@@ -357,7 +357,7 @@ export const Canvas: React.FC<{
   const outerCompositionTransform = `scale(${baseScaleFactor}) translate(${videoX}px, ${videoY}px)`;
   const innerAssetMirrorTransform = `scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`;
   const internalZoomTransform = `scale(${contentZoom})`;
-  const gridSize = (nativeWidth / 12) * contentZoom;
+  const gridSize = (nativeWidth / 21) * contentZoom;
 
   return (
     <div style={{ position: 'relative', display: 'inline-block', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
