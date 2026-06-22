@@ -12,6 +12,13 @@ export const MainComposition: React.FC<{ project: ProjectState }> = ({ project }
   const visibleStickers = project.overlays.filter(o => currentTime >= o.start && currentTime <= o.end);
   const activeFilters = project.filters.filter(f => currentTime >= f.start && currentTime <= f.end);
 
+  // Read positional alignment values computed directly from project store parameters
+  const videoX = project.videoX ?? 0;
+  const videoY = project.videoY ?? 0;
+  const contentZoom = project.contentZoom ?? 1.0;
+  const flipHorizontal = project.flipHorizontal ?? false;
+  const flipVertical = project.flipVertical ?? false;
+
   const resolveEasing = (easingStr: string | undefined) => {
     if (easingStr === 'ease-in') return (t: number) => t * t;
     if (easingStr === 'ease-out') return (t: number) => t * (2 - t);
@@ -30,19 +37,50 @@ export const MainComposition: React.FC<{ project: ProjectState }> = ({ project }
   });
   videoFilterStr += `brightness(${brightnessVal}%) contrast(${contrastVal}%) saturate(${saturateVal}%)`;
 
+  const activeVignette = activeFilters.some(f => f.type === 'vignette' || f.id === 'overlay-vignette');
+  const activeLightLeak = activeFilters.some(f => f.type === 'light-leak' || f.id === 'overlay-light-leak');
+  const activeFilmGrain = activeFilters.some(f => f.type === 'film-grain' || f.id === 'overlay-film-grain');
+  const activeCoolTone = activeFilters.some(f => f.type === 'cool-tone' || f.id === 'overlay-cool-tone');
+
+  // Compute unified transformation strings to reflect canvas tracking transforms
+  const backgroundPositionTransform = [
+    `translate(${videoX}px, ${videoY}px)`,
+    `scaleX(${flipHorizontal ? -1 : 1})`,
+    `scaleY(${flipVertical ? -1 : 1})`
+  ].join(' ');
+
+  const contentScaleTransform = `scale(${contentZoom})`;
+
   return (
     <AbsoluteFill style={{ backgroundColor: '#000' }}>
-      {/* Base Background Video Processing Layer */}
-      <div style={{ width: '100%', height: '100%', position: 'absolute', filter: videoFilterStr }}>
-        {project.videoSrc && (
-          <OffthreadVideo
-            src={project.videoSrc}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+      {/* Transformed Video Tracking Layer Container */}
+      <div 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          position: 'absolute', 
+          filter: videoFilterStr,
+          transform: backgroundPositionTransform,
+          transformOrigin: 'center center'
+        }}
+      >
+        <div style={{ width: '100%', height: '100%', transform: contentScaleTransform, transformOrigin: 'center center' }}>
+          {project.videoSrc && (
+            <OffthreadVideo
+              src={project.videoSrc}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Replicated High-Fidelity Rendering: Stickers Layer */}
+      {/* Environmental Shader Visual Blend Nodes */}
+      {activeVignette && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', mixBlendMode: 'multiply', background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)' }} />}
+      {activeCoolTone && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', mixBlendMode: 'color', backgroundColor: 'rgba(0, 100, 255, 0.15)' }} />}
+      {activeLightLeak && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', mixBlendMode: 'screen', opacity: 0.4, background: 'linear-gradient(45deg, #ff7b00 0%, transparent 70%)' }} />}
+      {activeFilmGrain && <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.05, backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPg==")`, backgroundRepeat: 'repeat' }} />}
+
+      {/* Stickers Overlay Tracking Layer */}
       {visibleStickers.map(sticker => {
         const hasMotion = sticker.initialX !== undefined && sticker.finalX !== undefined;
         let sx = sticker.x, sy = sticker.y, sw = sticker.width, sh = sticker.height, srot = sticker.rotation;
@@ -61,56 +99,70 @@ export const MainComposition: React.FC<{ project: ProjectState }> = ({ project }
           srot = (sticker.initialRotation ?? sticker.rotation) + ((sticker.finalRotation ?? sticker.rotation) - (sticker.initialRotation ?? sticker.rotation)) * easedT;
         }
 
-        // Uses the newly unified animation configuration
-        const animStyles = getUnifiedAnimationStyles((sticker as any).animation || 'none', currentFrame - Math.round(sticker.start * fps), fps);
-
         return (
           <div
             key={sticker.id}
             style={{
-              position: 'absolute', left: sx, top: sy, width: sw, height: sh,
-              transform: `rotate(${srot || 0}deg) ${animStyles.transform}`, opacity: animStyles.opacity,
-              transformOrigin: 'center center', zIndex: 5
+              position: 'absolute',
+              left: sx,
+              top: sy,
+              width: sw,
+              height: sh,
+              transform: `translate(-50%, -50%) rotate(${srot}deg)`,
             }}
           >
-            <img src={sticker.assetUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="" />
+            <img src={sticker.url} alt="Sticker" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
         );
       })}
 
-      {/* Replicated High-Fidelity Rendering: Captions Layer */}
+      {/* Typography Captions Tracking Layer */}
       {visibleCaptions.map(cap => {
         const style = cap.style;
         const top = (style.position.y / 100) * nativeHeight;
-        const left = typeof style.position.x === 'number' ? (style.position.x / 100) * nativeWidth : nativeWidth / 2;
-        const bg = style.backgroundColor;
-        const bgCss = typeof bg === 'string' ? bg : `rgba(${bg.r},${bg.g},${bg.b},${bg.a})`;
+        let left = nativeWidth / 2;
+        if (typeof style.position.x === 'number') left = (style.position.x / 100) * nativeWidth;
+        else if (style.position.x === 'left') left = 80;
+        else if (style.position.x === 'right') left = nativeWidth - 80;
 
-        const frameDelta = currentFrame - Math.round(cap.start * fps);
+        const frameDelta = Math.max(0, currentFrame - Math.round(cap.start * fps));
         const currentAnimType = style.animation || 'none';
-        
-        // Uses unified calculation for container layouts
-        const containerAnim = !(style as any).wordByWord ? getUnifiedAnimationStyles(currentAnimType, frameDelta, fps) : { opacity: 1, transform: '' };
+        const animStyles = getUnifiedAnimationStyles(currentAnimType, frameDelta, fps);
 
         return (
           <div
             key={cap.id}
             style={{
-              position: 'absolute', left, top,
-              transform: `translate(-50%, -50%) ${containerAnim.transform}`, opacity: containerAnim.opacity,
-              width: (style as any).width ? `${(style as any).width}px` : '85%', maxWidth: '95%',
-              padding: '16px 40px', borderRadius: style.borderRadius || 8, background: bgCss, color: style.color,
-              fontFamily: style.fontFamily || 'inherit', fontSize: style.fontSize || 48, fontWeight: (style as any).fontWeight || 700,
-              textAlign: ((style as any).textAlign as any) || 'center', wordBreak: 'break-word', zIndex: 10, boxSizing: 'border-box'
+              position: 'absolute',
+              left,
+              top,
+              width: style.width || 600,
+              transform: 'translate(-50%, -50%)',
+              padding: '8px 12px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: style.textAlign || 'center',
             }}
           >
-            <div style={{ width: '100%' }}>
-              {(style as any).wordByWord ? (
-                <div style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: (style as any).textAlign || 'center', width: '100%' }}>
-                  {(cap.words && cap.words.length > 0 ? cap.words : cap.text.split(/\s+/).map((w, i, arr) => ({ text: w, start: cap.start + (i * ((cap.end - cap.start) / arr.length)), end: cap.start + ((i + 1) * ((cap.end - cap.start) / arr.length)) }))).map((w, i) => {
+            <div
+              style={{
+                color: style.color || '#ffffff',
+                fontSize: `${style.fontSize || 48}px`,
+                fontWeight: style.fontWeight || 'bold',
+                textShadow: style.textShadow || '2px 2px 4px rgba(0,0,0,0.8)',
+                fontFamily: style.fontFamily || 'Impact, sans-serif',
+                textTransform: style.textTransform || 'uppercase',
+                width: '100%',
+                wordBreak: 'break-word',
+                opacity: animStyles.opacity,
+                transform: animStyles.transform,
+              }}
+            >
+              {currentAnimType === 'word-by-word' && cap.words ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {cap.words.map((w, i) => {
                     const wordDelta = currentFrame - Math.round(w.start * fps);
-                    
-                    // Direct parity fix targeting individual words via getUnifiedAnimationStyles
                     const wordStyles = getUnifiedAnimationStyles(currentAnimType, wordDelta, fps);
 
                     return (
